@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+name: Dokimi static diagnostics
+
+on:
+  pull_request:
+    paths:
+      - plugins/**
+      - README.md
+      - scripts/dokimi_static.py
+      - tests/test_dokimi_static.py
+      - .github/workflows/dokimi.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          path: base
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: intel/dokimi
+          ref: d5bd732b84247c26dfbabedfa6b876e1095dd805
+          path: engine
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Test diagnostic adapter
+        run: python -I -m unittest discover -s candidate/tests -p test_dokimi_static.py
+      - name: Install upstream Dokimi
+        run: python -m pip install --disable-pip-version-check ./engine/dokimi
+      - name: Compare static diagnostics and existing README examples
+        env:
+          ROOT: ${{ github.workspace }}/candidate
+          BASE: ${{ github.workspace }}/base
+          OUT: ${{ runner.temp }}/dokimi-static
+        run: python -I "$ROOT/scripts/dokimi_static.py" --root "$ROOT" --base "$BASE" --out "$OUT"
+      - name: Publish findings and routing changes
+        if: always()
+        env:
+          REPORT: ${{ runner.temp }}/dokimi-static/report.md
+        run: |
+          if [ -f "$REPORT" ]; then cat "$REPORT" >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Retain reports and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: dokimi-static-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/dokimi-static
+          if-no-files-found: error
