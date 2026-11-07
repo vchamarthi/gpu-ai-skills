@@ -92,6 +92,30 @@ scanner and rewriter sections. Absent it, that script announces `SKIP: libcst no
 importable` and the rest of the suite still passes. `pip install libcst` if you
 are changing anything under the `xpu-port` skill.
 
+### Dokimi static diagnostics (no model or GPU)
+
+The `Dokimi static diagnostics` workflow installs a pinned upstream Dokimi
+revision and retains catalog findings, paths, README query coverage and lexical
+routing changes in its job summary and artifacts. It complements the validation
+gate; it does not run skill scripts, install skills, or measure GPU performance.
+
+For a pull request, existing examples come from the base README and compete
+against both catalogs. Candidate-added or rewritten examples are reported
+separately. This prevents a description change from replacing its own regression
+questions. These published examples are illustrative, not a comprehensive or
+independently authored routing evaluation; lexical choices are not agent accuracy.
+
+After installing the upstream revision pinned in `.github/workflows/dokimi.yml`:
+
+```sh
+python scripts/dokimi_static.py --root /path/to/candidate \
+  --base /path/to/base --out /path/to/fresh-reports
+```
+
+Omit `--base` for a standalone report. Output must be a fresh directory outside
+the checkouts. Structural errors fail the job; wording warnings and lexical
+scores are advisory. No provider, credentials or repository variables are needed.
+
 ## Layer 2 — Install round-trip (~30 seconds, no GPU)
 
 Confirms the install script puts files in the right places without
