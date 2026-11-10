@@ -147,8 +147,7 @@ jobs:
       - run: dokimi catalog check --root . --kind skills --strict
 ```
 
-Replace `b30a1a200ceb126b0e9cd3c9c7ea34019981db6c` with the dokimi release you choose (the setup step
-refuses a moving name such as `main`, so your check never changes under you).
+The setup step is pinned to one exact dokimi version, so the check never changes under you.
 
 **Red mark = a skill could not be loaded or breaks the skill format.**
 Everything else is shown as a yellow note and does not block the change.
