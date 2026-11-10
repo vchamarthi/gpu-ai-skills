@@ -1,0 +1,42 @@
+name: Skills check
+
+# Free static check of every SKILL.md with dokimi: no model, no secret, no cost.
+# Red = a skill cannot be loaded or breaks the skill format; warnings are notes only.
+# Guide: docs/free-skills-check.md
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/**/skills/**'
+      - 'template/**'
+      - '.github/workflows/skills-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'plugins/**/skills/**'
+      - 'template/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  skills-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: intel/dokimi/actions/setup@b30a1a200ceb126b0e9cd3c9c7ea34019981db6c
+        with:
+          dokimi-ref: b30a1a200ceb126b0e9cd3c9c7ea34019981db6c
+      - name: Check skills
+        shell: bash
+        run: |
+          dokimi catalog check --root . --kind skills --skip-nested --strict | tee "$RUNNER_TEMP/skills-check.txt"
+      - name: Show result in the run summary
+        if: always()
+        shell: bash
+        run: |
+          { echo '## Skills check'; echo '```'; cat "$RUNNER_TEMP/skills-check.txt" 2>/dev/null || echo 'no output'; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
