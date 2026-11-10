@@ -124,6 +124,51 @@ Nothing is broken. All of it is small, fixable, and was invisible before.
 
 ---
 
+## How you see what needs attention
+
+- **One list:** every skill on one line, `ok`, `warn` or `ERROR`, with plain words under each one.
+- **On every change:** the same list is in the run log and on the run's summary page.
+- **For tools:** add `--format json` to feed a dashboard or script.
+
+| Level | Meaning | Effect |
+|---|---|---|
+| Red, `ERROR` | The skill cannot load | The change is marked failed |
+| Yellow, `warn` | Worth a look | A note only; the change still passes |
+
+Warnings never fail the check, so they show in the log or summary, not as a mark on the change.
+
+---
+
+## What to fix, and how
+
+| The check says | Level | What to do |
+|---|---|---|
+| Invalid text at the top (`frontmatter-parse`) | Red | Put the description in quotes |
+| No "use when" line (`description-no-when`) | Yellow | Start the description with "Use when ..." |
+| Near-duplicate skill (`description-near-duplicate`) | Yellow | Merge the two, or reword one to differ |
+| Download piped to a shell (`pipe-to-shell`) | Yellow | Save the file, read it, then run it |
+| Install with no version (`install-unpinned`) | Yellow | Pin it, for example `pkg==1.2.3` |
+| Link to a missing file (`link-missing`) | Yellow | Add the file or fix the link |
+| Skill page too long (`body-too-large`) | Yellow | Move detail into bundled files |
+
+The check only reports. You make the fix, then run it again. Disagree with a
+warning? Silence it with `--ignore <code>`.
+
+---
+
+## More free checks, beyond skills
+
+All three are free and run on your own checkout. The real results below are from a
+scan of `intel/gpu-ai-skills`.
+
+| Command | What it does | Real result |
+|---|---|---|
+| `dokimi repo scan .` | Checks that files, commands and links named in `AGENTS.md` and `CLAUDE.md` really exist | 40 claims: 29 ok, 10 undecided, 1 wrong. `AGENTS.md` line 60 names `scripts/publish.sh`, which is not there |
+| `dokimi repo budget .` | Shows how much text the AI helper loads at the start, and what it skips | 6,492 characters loaded. `CLAUDE.md` switches `AGENTS.md` off, so 17,509 more sit unread unless opened |
+| `dokimi skill check NAME --root .` | The same skill checks, for just the skill you are editing | `xpu-discover`: no "use when" line |
+
+---
+
 ## Make it automatic (so nobody has to remember)
 
 This repository already has `.github/workflows/skills-check.yml` (shown below). Every change to a skill is checked, and a problem shows up as a red mark on
@@ -171,6 +216,29 @@ whether the skill **actually makes the AI better**. That is the next step, it
 uses an AI model (so it costs money), and dokimi runs it as a before-and-after
 test. Start with the free check; add the paid test only for the skills that
 matter most.
+
+---
+
+## What the free check does not do yet
+
+- **Fixes are manual:** it reports, you edit, then run it again.
+- **Warnings are quiet:** they show in the log and summary, not as a mark on the change.
+- **Your skills only:** twins and "which one gets picked" are judged among your own skills.
+- **Facts are not checked:** it cannot tell whether a skill's advice is true or out of date.
+- **"Does it help?"** needs the paid before-and-after test.
+
+---
+
+## Questions you may have
+
+| Question | Answer |
+|---|---|
+| Does it cost anything? | No. No AI model, no account, no key. |
+| Will it change my files? | No. It only reads and reports. |
+| Do I need to code? | One copy-paste line, or none once the automatic check is on. |
+| How long does it take? | Seconds for a few dozen skills. |
+| Can I ignore a warning? | Yes. Add `--ignore` with the warning's code. |
+| Does "ok" mean it is good? | No. It means well-formed and safe to load, not better answers. |
 
 ---
 
