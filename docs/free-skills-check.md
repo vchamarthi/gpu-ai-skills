@@ -24,7 +24,11 @@ tells you what is wrong **before** anyone installs it.
 
 ## Try it now (3 steps)
 
-1. Install: `pip install dokimi`
+1. Install the tested version (the plain `pip install dokimi` is an older release without these checks):
+
+   ```bash
+   pip install "dokimi @ git+https://github.com/intel/dokimi@b30a1a200ceb126b0e9cd3c9c7ea34019981db6c#subdirectory=dokimi"
+   ```
 2. Point it at your skills folder:
 
    ```bash
@@ -171,7 +175,7 @@ scan of `intel/gpu-ai-skills`.
 
 ## Make it automatic (so nobody has to remember)
 
-This repository already has `.github/workflows/skills-check.yml` (shown below). Every change to a skill is checked, and a problem shows up as a red mark on
+This repository already has `.github/workflows/skills-check.yml` (a simplified version is shown below). Every change to a skill is checked, and a problem shows up as a red mark on
 the change before it is merged.
 
 ```yaml
@@ -193,6 +197,19 @@ jobs:
 ```
 
 The setup step is pinned to one exact dokimi version, so the check never changes under you.
+
+
+Five free checks run on every change (all verified in real runs in both forks):
+
+| Check | Fails the change? | Real result |
+|---|---|---|
+| 1. Skills check | Only if a skill cannot load | `intel/skills`: 35 skills, 23 ok, 12 warn, 0 error |
+| 2. Static plan, every skill | No | Both repos: pass |
+| 3. Instruction files scan | No | `gpu-ai-skills`: 40 claims, 1 wrong |
+| 4. Instruction size | No | `gpu-ai-skills`: 6,492 characters at start |
+| 5. Agent setup check | No | `intel/skills`: no `AGENTS.md` or `CLAUDE.md` at the root |
+
+Results appear in the run summary and in a downloadable report.
 
 **Red mark = a skill could not be loaded or breaks the skill format.**
 Everything else is shown as a yellow note and does not block the change.
@@ -236,7 +253,7 @@ matter most.
 | Does it cost anything? | No. No AI model, no account, no key. |
 | Will it change my files? | No. It only reads and reports. |
 | Do I need to code? | One copy-paste line, or none once the automatic check is on. |
-| How long does it take? | Seconds for a few dozen skills. |
+| How long does it take? | About a minute to set up on GitHub, then a few seconds for the checks. |
 | Can I ignore a warning? | Yes. Add `--ignore` with the warning's code. |
 | Does "ok" mean it is good? | No. It means well-formed and safe to load, not better answers. |
 
